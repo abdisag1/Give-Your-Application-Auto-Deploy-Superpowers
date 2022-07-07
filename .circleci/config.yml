@@ -1,7 +1,6 @@
 version: 2.1
 
 jobs:
-  
   build_frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -29,7 +28,6 @@ workflows:
   jobs:
     - build-frontend
     - build_backend
-      
 
       # - test-frontend:
       #     requires: [build-frontend]
