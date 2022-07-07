@@ -60,36 +60,35 @@ jobs:
             npm install
             npm test
   scan-frontend:
-        docker:
-            - image: circleci/node:13.8.0
-        steps:
-            - checkout
-            - restore_cache:
-                  keys: [frontend-deps]
-            - run:
-                  name: frontend scan
-                  command: |
-                      cd frontend
-                      npm install
-                      npm audit fix --force --audit-level=critical
-                      npm audit --audit-level=critical
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-deps]
+      - run:
+          name: frontend scan
+          command: |
+            cd frontend
+            npm install
+            npm audit fix --force --audit-level=critical
+            npm audit --audit-level=critical
 
-    scan-backend:
-        docker:
-            - image: circleci/node:13.8.0
-        steps:
-            - checkout
-            - restore_cache:
-                  keys: [backend-deps]
-            - run:
-                  name: backend scan
-                  command: |
-                      cd backend
-                      npm install
-                      npm audit fix --force --audit-level=critical
-                      npm audit fix --force --audit-level=critical
-                      npm audit --audit-level=critical
-
+  scan-backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [backend-deps]
+      - run:
+          name: backend scan
+          command: |
+            cd backend
+            npm install
+            npm audit fix --force --audit-level=critical
+            npm audit fix --force --audit-level=critical
+            npm audit --audit-level=critical
 
 workflows:
   my_workflow:
@@ -97,14 +96,10 @@ workflows:
       - build_frontend
       - build_backend
       - test-frontend:
-          requires: 
-            [build_frontend]
+          requires: [build_frontend]
       - test-backend:
-          requires: 
-            [build_backend]
+          requires: [build_backend]
       - scan-frontend:
-          requires:
-            [build-fronted]
+          requires: [build-fronted]
       - scan-backend:
-          requires:
-            [build-backend]
+          requires: [build-backend]
