@@ -1,6 +1,5 @@
 version: 2.1
 
-
 jobs:
   build_backend:
     docker:
@@ -13,7 +12,7 @@ jobs:
           root: ~/
           paths:
             - project/backend/node_modules
-   
+
 workflows:
   my_workflow:
     jobs:
