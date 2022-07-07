@@ -27,5 +27,5 @@ jobs:
 workflows:
   my_workflow:
     jobs:
-      - build-frontend
+      - build_frontend
       - build_backend
