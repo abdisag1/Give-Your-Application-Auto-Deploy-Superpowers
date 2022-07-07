@@ -1,17 +1,7 @@
 version: 2.1
 
 jobs:
-  build_backend:
-    docker:
-      - image: circleci/node:13.8.0
-    steps:
-      - checkout
-      - run: npm i --prefix backend
-      - run: npm run lint --prefix backend
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/backend/node_modules
+  
   build_frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -23,12 +13,23 @@ jobs:
           root: ~/
           paths:
             - project/frontend/node_modules
+  build_backend:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run: npm i --prefix backend
+      - run: npm run lint --prefix backend
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/backend/node_modules
 
 workflows:
-  my_workflow:
-    jobs:
-      - build_backend
-      - build-frontend
+  jobs:
+    - build-frontend
+    - build_backend
+      
 
       # - test-frontend:
       #     requires: [build-frontend]
