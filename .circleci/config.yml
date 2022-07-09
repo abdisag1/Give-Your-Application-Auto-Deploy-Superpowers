@@ -373,7 +373,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: ~/
+          at: ~/root
       - run:
           name: Install dependencies
           command: |
