@@ -155,7 +155,7 @@ jobs:
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --output text)
-            
+
       - persist_to_workspace:
           root: ~/
           paths:
@@ -163,6 +163,25 @@ jobs:
       # Here's where you will add some code to rollback on failure
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
+  configure-infrastructure:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - install_awscli
+      - install_ansible
+      - add_ssh_keys:
+          fingerprints: ["46:d0:2f:76:b2:11:6c:20:28:e1:81:a8:71:fa:8f:8f"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: Configure Server
+          command: |
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt configure-server.yml
+      - destroy-environment
 
 workflows:
   my_workflow:
@@ -182,3 +201,5 @@ workflows:
           filters:
             branches:
               only: [features]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
