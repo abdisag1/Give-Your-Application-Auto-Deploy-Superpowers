@@ -66,6 +66,22 @@ commands:
             aws cloudformation delete-stack --stack-name udapeople-backend-<<parameters.workflow_id>>
             aws s3 rm s3://udapeople-<<parameters.workflow_id>> --recursive
             aws cloudformation delete-stack --stack-name udapeople-frontend-<<parameters.workflow_id>>
+  
+  revert-migrations:
+    parameters:
+      workflow_id:
+        type: string
+    steps:
+      - run:
+          name: Reverting migrations
+          when: on_fail
+          command: |
+            SUCCESS=$(curl "https://kvdb.io/H95GxqU6jP4NtRKsceJ2fU//migration_<<parameters.workflow_id>>" -H "X-Api-Key: ${THISDB_API_KEY}")
+            if (($SUCCESS == 1)); then
+              cd backend
+              npm install
+              npm run migrations:revert
+            fi
 
 jobs:
   build_frontend:
@@ -374,8 +390,8 @@ jobs:
             fi           
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-      # - revert-migrations:
-      #     workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
 
 workflows:
