@@ -310,24 +310,26 @@ jobs:
       - add_ssh_keys:
           fingerprints: ["46:d0:2f:76:b2:11:6c:20:28:e1:81:a8:71:fa:8f:8f"]
       - attach_workspace: 
-          at: ~/
+          at: ~/root
       - restore_cache:
           keys:
             - build-backend
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible nodejs npm tar gzip
+            apk add --update ansible rsync 
+            apk add curl
+            pip3 install awscli
       - run:
           name: Deploy backend
           command: |
-            cd backend
-            npm install
-            npm run build
-            cd ..
-            tar -C backend -czvf artifact.tar.gz .
+            ls /root
+            ls /root/project/backend/
             cat ~/project/.circleci/ansible/inventory.txt
             ansible-playbook -i ~/project/.circleci/ansible/inventory.txt ~/project/.circleci/ansible/deploy-backend.yml
+      # Here's where you will add some code to rollback on failure
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 
 workflows:
