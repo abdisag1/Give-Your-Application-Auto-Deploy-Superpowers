@@ -1,5 +1,10 @@
 ---
-- name: "upgrade packages."
+- name: "update apt"
+  become: true
+  apt:
+    update_cache: yes
+
+- name: "upgrade apt packages"
   become: true
   apt:
     upgrade: "yes"
@@ -10,6 +15,17 @@
     name: ["nodejs", "npm"]
     state: latest
     update_cache: yes
+
+- name: "install n"
+  become: true
+  npm:
+    name: n
+    global: yes
+    production: yes
+
+- name: "install nodejs 12.20.1"
+  become: true
+  shell: n 12.20.1
 
 - name: "install pm2"
   become: true
