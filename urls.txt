@@ -1,6 +1,7 @@
 Public Url to GitHub repository (not private) [URL01]
     https://github.com/abdisag1/Give-Your-Application-Auto-Deploy-Superpowers
 Public URL for your S3 Bucket (aka, your green candidate front-end) [URL02]
-    http://udapeople-c4529cd.s3-website-us-west-2.amazonaws.com/#/employees
-Evidence of deployed and functioning Frontend in CloudFront. [URL03
-    
+   https://udapeople-1248244.s3-website-us-west-2.amazonaws.com/ 
+
+Public URL to your Prometheus Server [URL05]
+    http://ec2-34-215-164-244.us-west-2.compute.amazonaws.com:9090/service-discovery
