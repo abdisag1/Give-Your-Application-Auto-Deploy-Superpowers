@@ -347,54 +347,104 @@ jobs:
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
   
-  smoke-test-backend:
+  smoke-test:
     docker:
       - image: python:3.7-alpine3.11
     steps:
       - checkout
       - attach_workspace:
-          at: ~/root
+          at: ~/
       - run:
           name: Install dependencies
           command: |
             apk add --update curl
             pip install awscli
       - run:
-          name: Backend smoke test
+          name: Get backend url
           command: |
-             BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
-             API_URL="http://${BACKEND_IP}:3030"
-             curl "${API_URL}/api/status"
+            pwd
+            cat .circleci/ansible/inventory.txt
+            cat ~/output.txt
+            export API_URL=`cat ~/output.txt`
+            echo "API_URL: $API_URL"
+      - run:
+          name: Backend smoke test.
+          command: |
+            # curl -s $API_URL/api/status
+            # cat $API_URL/api/status
+            if curl -s $API_URL/api/status
+            then
+            return 1
+            else
+            return 0
+            fi
+      - run:
+          name: Frontend smoke test.
+          command: |
+            if curl -s http://udapeople-prod-${CIRCLE_WORKFLOW_ID}.s3-website.us-west-2.amazonaws.com/ | grep "Welcome"
+            then
+            return 0
+            else
+            return 1
+            fi
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID}"
       - revert-migrations:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
-  smoke-test-frontend:
+           
+   cloudfront-update:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/base:2021.04
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/root
+      - dependencies
       - run:
-          name: Install dependencies
+          name: get old workflow for clean
           command: |
-            apk add --update curl
-            pip install awscli
+            OldWorkflowID=$(aws cloudformation \
+            list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+            --no-paginate --output text)
+            curl https://kvdb.io/H95GxqU6jP4NtRKsceJ2fU//migration_${CIRCLE_WORKFLOW_ID:0:7} \
+            -H "X-Api-Key: ${THISDB_API_KEY}" \
+            -d "$OldWorkflowID"  
       - run:
-          name: Smoke test for front end
+          name: Updating cloudfront distribution
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"             
-            echo ${URL} 
-            if curl -s ${URL} | grep "Welcome"
-            then
-              exit 0
-            else
-              exit 1
-            fi           
+            aws cloudformation deploy \
+            --template-file .circleci/files/cloudfront.yml \
+            --stack-name InitialStack \
+            --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+            --tags project=udapeople
       - destroy-environment:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
       - revert-migrations:
           workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
+  cleanup:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Remove old stacks and files
+          command: |
+            if [[ 6f4e40c == "" ]]
+            then
+            echo "No workflow id found"
+            else
+            if [[ "683c244" != "6f4e40c" ]]
+            then
+              echo "$OldWorkflowID!=$CurrentWorkflowID => will delete old version"
+              aws s3 rm "s3://udapeople-6f4e40c" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-6f4e40c"
+              aws cloudformation delete-stack --stack-name "udapeople-backend-6f4e40c"
+            fi
+            fi
+  
+      - destroy-environment:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
+      - revert-migrations:
+          workflow_id: '${CIRCLE_WORKFLOW_ID:0:7}'
 
 workflows:
   my_workflow:
@@ -426,3 +476,7 @@ workflows:
           requires: [deploy-backend]
       - smoke-test-frontend:
           requires: [deploy-frontend]
+      - cloudfront-update:
+          requires: [smoke-test-backend,smoke-test-frontend]
+      - cleanup:
+          requires: [cloudfront-update]
