@@ -390,10 +390,11 @@ jobs:
             else
             return 0
             fi
+            echo $BACKEND_URL
       - run:
           name: Frontend smoke test.
           command: |
-            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.com"
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-west-2.amazonaws.coms"
             echo $URL
             if curl -s ${URL} | grep "Welcome"
             then
