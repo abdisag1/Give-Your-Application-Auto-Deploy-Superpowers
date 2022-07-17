@@ -378,19 +378,16 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: Get backend url
+          name: Install dependencies
           command: |
-            export BACKEND_URL=$(sed -n 2p .circleci/ansible/inventory.txt)
+            apk add --update curl
+            pip install awscli
       - run:
-          name: Backend smoke test.
+          name: Backend smoke test
           command: |
-            if curl -s https://${BACKEND_URL}:3030/api/status
-            then
-            return 1
-            else
-            return 0
-            fi
-            echo $BACKEND_URL
+             BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+             API_URL="http://${BACKEND_IP}:3030"
+             curl "${API_URL}/api/status"
       - run:
           name: Frontend smoke test.
           command: |
