@@ -337,16 +337,12 @@ jobs:
           fingerprints: ["46:d0:2f:76:b2:11:6c:20:28:e1:81:a8:71:fa:8f:8f"]
       - attach_workspace:
           at: ~/
-      - restore_cache:
-          keys: [backend-build]
-
       - run:
           name: Install dependencies
           command: |
-            cd backend
-            npm install
-            npm run build
-            cd ..
+            apk add --update ansible openssh-client tar gzip
+      - restore_cache:
+          keys: ["backend-dist"] # -<< pipeline.id >>
       - run:
           name: Package Backend
           command: |
@@ -371,7 +367,6 @@ jobs:
 
       - revert-migrations:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
-
 
   smoke-test-backend:
     docker:
