@@ -337,34 +337,41 @@ jobs:
           fingerprints: ["46:d0:2f:76:b2:11:6c:20:28:e1:81:a8:71:fa:8f:8f"]
       - attach_workspace:
           at: ~/
+      - restore_cache:
+          keys: [backend-build]
+
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible openssh-client tar gzip
-      - restore_cache:
-          keys: ["backend-dist"] # -<< pipeline.id >>
+            cd backend
+            npm install
+            npm run build
+            cd ..
+      - run:
+          name: Package Backend
+          command: |
+            tar -C backend -czvf artifact.tar.gz .
+            cp artifact.tar.gz  ~/
+      - run:
+          name: Checking the existence of inventory.txt && artifact.tar.gz file
+          command: |
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat inventory.txt
+            echo "Contents of files folder is -------"
+            ls ~/
       - run:
           name: Deploy backend
           command: |
-            cd /home
-            tar czf backend.tar.gz -P /home/circleci/project/backend/dist
-      - run:
-          name: Deploy backend 2
-          command: |
-            export ANSIBLE_HOST_KEY_CHECKING=False
-            ansible-playbook \
-              -i .circleci/ansible/inventory.txt \
-              .circleci/ansible/deploy-backend.yml
-      - run:
-          name: Install AWS CLI for rollback
-          when: on_fail
-          command: |
-            apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
-
+            cd .circleci/ansible
+            cat inventory.txt
+            ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID}"
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
       - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
 
   smoke-test-backend:
     docker:
