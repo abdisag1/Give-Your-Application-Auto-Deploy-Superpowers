@@ -192,7 +192,7 @@ jobs:
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
               --tags project=udapeople
       - run:
-          name: ensure front-end infrastructure exit
+          name: ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
              --template-file .circleci/files/frontend.yml \
@@ -324,19 +324,27 @@ jobs:
 
   deploy-backend:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: cimg/base:stable
     steps:
       - checkout
+      - awscli
+      - ansible
+      - nodejs
       - add_ssh_keys:
-          fingerprints: ["46:d0:2f:76:b2:11:6c:20:28:e1:81:a8:71:fa:8f:8f"]
+          fingerprints: ["45:44:e9:b4:35:84:f7:3f:e3:f9:5f:e5:a0:95:2a:b1"]
+
       - attach_workspace:
           at: ~/
+      - restore_cache:
+          keys: [backend-build]
+
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible openssh-client tar gzip
-      - restore_cache:
-          keys: ["backend-dist"] # -<< pipeline.id >>
+            cd backend
+            npm install
+            npm run build
+            cd ..
       - run:
           name: Package Backend
           command: |
@@ -495,10 +503,8 @@ workflows:
           requires: [run-migrations]
       - deploy-backend:
           requires: [run-migrations]
-      - smoke-test-backend:
-          requires: [deploy-backend]
-      - smoke-test-frontend:
-          requires: [deploy-frontend]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
       - cloudfront-update:
           requires: [smoke-test-backend,smoke-test-frontend]
       - cleanup:
