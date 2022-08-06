@@ -24,7 +24,7 @@ commands:
           name: Reverting migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl "https://kvdb.io/H95GxqU6jP4NtRKsceJ2fU//migration_<<parameters.workflow_id>>" -H "X-Api-Key: ${THISDB_API_KEY}")
+            SUCCESS=$(curl "https://kvdb.io/7WB7MnqjW6R7adqmQAsFEz/migration_<<parameters.workflow_id>>" -H "X-Api-Key: ${THISDB_API_KEY}")
             if (($SUCCESS == 1)); then
               cd backend
               npm install
@@ -220,7 +220,7 @@ jobs:
           paths:
             - project/backend/.env
 
-  run-migrations:
+ run-migrations:
     docker:
       - image: cimg/node:13.8.0
     steps:
@@ -237,17 +237,11 @@ jobs:
             echo "has been executed successfully." >> migrations_dump.txt
             cat migrations_dump.txt
       - run:
-          name: Sending migration status to kvdb
+          name: Send migration status to kvdb.io
           command: |
-            if grep -q "has been executed successfully"  ./backend/migrations_dump.txt   
-            then
-              curl https://kvdb.io/H95GxqU6jP4NtRKsceJ2fU//migration_${CIRCLE_WORKFLOW_ID:0:7} \
-                -H "X-Api-Key: ${THISDB_API_KEY}" \
-                -d "1"
-            else
-              curl https://kvdb.io/H95GxqU6jP4NtRKsceJ2fU//migration_${CIRCLE_WORKFLOW_ID:0:7} \
-                -H "X-Api-Key: ${THISDB_API_KEY}" \
-                -d "0"
+            if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
+            then  
+                 curl https://kvdb.io/7WB7MnqjW6R7adqmQAsFEz/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'    
             fi
   deploy-frontend:
     docker:
