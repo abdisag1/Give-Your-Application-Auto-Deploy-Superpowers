@@ -225,6 +225,9 @@ jobs:
         - image: sleavely/node-awscli:14.x
       steps:
         - checkout
+        - awscli
+      - restore_cache:
+          keys: [backend-build]
         - run:
             name: Run migrations
             command: |
