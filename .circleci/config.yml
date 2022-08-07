@@ -425,7 +425,7 @@ jobs:
                 --query "StackSummaries[*].StackName" \
                 --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"
-            export OldWorkflowID=$(curl --insecure https://7WB7MnqjW6R7adqmQAsFEz/old_workflow_id)
+            export OldWorkflowID=$(curl --insecure https://kvdb.io/7WB7MnqjW6R7adqmQAsFEz/old_workflow_id)
             echo Old Workflow ID: $OldWorkflowID 
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
