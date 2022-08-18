@@ -300,35 +300,71 @@ jobs:
       - attach_workspace:
           at: ~/
       - restore_cache:
-          keys: [backend-build]
+          keys: [backend-deps]
+      # - run:
+      #     name: Install dependencies
+      #     command: |
+      #       cd backend
+      #       npm install
+      # - run:
+      #     name: Package Backend
+      #     command: |
+      #       cd backend
+      #       npm run build
+      #       tar -czf artifact.tar.gz dist/* package*
 
+      #       cd ..
+      #       cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
+      # - run:
+      #     name: Deploy backend1
+      #     command: |
+      #       export TYPEORM_MIGRATIONS_DIR=./migrations
+      #       export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+      #       export TYPEORM_MIGRATIONS=./migrations/*.ts
+
+      #       cd .circleci/ansible
+      #       cat inventory.txt
+      #       ansible-playbook -i inventory.txt deploy-backend.yml
+      
+      # - run:
+      #     name: Install Ansible
+      #     command: |
+      #       apk add ansible nodejs npm
+      #       pip install awscli
       - run:
-          name: Install dependencies
+          name: Create the  .env file
           command: |
             cd backend
-            npm install
+            touch .env
+            echo "TYPEORM_HOST=${TYPEORM_HOST}"  >> .env
+            echo "TYPEORM_PORT=${TYPEORM_PORT}" >> .env
+            echo "TYPEORM_USERNAME=${TYPEORM_USERNAME}" >> .env
+            echo "TYPEORM_PASSWORD=${TYPEORM_PASSWORD}" >> .env
+            echo "TYPEORM_DATABASE=${TYPEORM_DATABASE}" >> .env
+            echo "TYPEORM_CONNECTION=postgres" >> .env
+            echo "TYPEORM_MIGRATIONS_DIR=./src/migrations" >> .env
+            echo "TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts" >> .env
+            echo "TYPEORM_MIGRATIONS=./src/migrations/*.ts" >> .env
+            cat .env
+      - run:
+          name: Deploy Our backend
+          command: |
+            cd backend
+            npm i
             npm run build
+            # tar -czf artifact.tar.gz .
             cd ..
-      - run:
-          name: Package Backend
-          command: |
-            tar -C backend -czvf artifact.tar.gz .
-            cp artifact.tar.gz  ~/
-      - run:
-          name: Checking the existence of inventory.txt && artifact.tar.gz file
-          command: |
+            # enter backend directory and Zip the directory
+            tar -C backend -czf artifact.tar.gz .
+            cp artifact.tar.gz ~/project/.circleci/ansible/roles/deploy/files/
+            # ls ~/project/.circleci/ansible/roles/deploy/files/
+            echo "Present working directory is -------"
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
-            echo "Contents of files folder is -------"
-            ls ~/
-      - run:
-          name: Deploy backend
-          command: |
-            cd .circleci/ansible
-            cat inventory.txt
             ansible-playbook -i inventory.txt deploy-backend.yml
-          no_output_timeout: 10m
+          no_output_timeout: 30m
+
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
