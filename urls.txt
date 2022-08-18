@@ -4,4 +4,4 @@ Public URL for your S3 Bucket (aka, your green candidate front-end) [URL02]
    https://udapeople-1248244.s3-website-us-west-2.amazonaws.com/ 
 
 Public URL to your Prometheus Server [URL05]
-    http://ec2-34-215-164-244.us-west-2.compute.amazonaws.com:9090/service-discovery
+    http://ec2-34-215-164-244.us-west-2.compute.amazonaws.com:9090/service-discover
