@@ -1,7 +1,7 @@
 Public Url to GitHub repository (not private) [URL01]
     https://github.com/abdisag1/Give-Your-Application-Auto-Deploy-Superpowers
 Public URL for your S3 Bucket (aka, your green candidate front-end) [URL02]
-   http://udapeople-1e5969d.s3-website-us-east-1.amazonaws.com/#/employees
+   http://d3gl03jfmudihb.cloudfront.net/#/employees
 public URL for The backend endpoint status should show a healthy response. [URL04]
 http://44.209.83.59:3030/api/status
 
